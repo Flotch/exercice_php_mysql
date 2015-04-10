@@ -1,66 +1,78 @@
 <!DOCTYPE html>
+
+<?php
+
+const DB_SERVER = 'localhost';
+const DB_USER   = 'cpnv';
+const DB_PWD    = 'cpnv1234';
+const DB_NAME   = 'world';
+
+$error_msg = '';
+
+$dbh = @ new mysqli(DB_SERVER, DB_USER, DB_PWD, DB_NAME);
+
+if ($dbh->connect_errno) {
+
+    $error_msg = sprintf('Problème de connexion : (%d) %s', $dbh->connect_errno, $dbh->connect_error);
+
+    } else {
+
+    $query = "select * from City where CountryCode = 'CHE'";
+    if (!$result = $dbh->query($query)) {
+    
+        $error_msg = sprintf('Problème lors de la requête : (%d) %s', $dbh->errno, $dbh->error);
+        }
+
+$dbh->close();
+
+}
+
+?>
+
 <html>
 <head>
 	<title>Cities</title>
-	<meta http-equiv="content-type" content="text/html;charset=ISO-8859-1" />
+	<meta charset="utf-8">
 </head>
 <body>
-
-<table border="solid">
-    <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Country Code</th>
-        <th>District</th>
-        <th>Lien edit</th>
-   </tr>
+    
 <?php
-$dbh = new mysqli('localhost', 'cpnv', 'cpnv1234', 'world');
+if ($error_msg) {
+?>
+        <p>Ooops, il semblerait qu'une erreur se soit produite :</p>
+        <p><?= $error_msg ?></p>
 
-if ($dbh->connect_error) {
-
-    die('Probleme de connexion (' . $dbh->connect_errno . ') '  . $dbh->connect_error);
+<?php
+    } else {
+?>
+        <table border='1px solid black'>
+          <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th>Code du pays</th>
+            <th>Canton</th>
+            <th>Population</th>
+          </tr>
+<?php
+        while ($country = $result->fetch_assoc()) {
+?>
+           <tr>
+             <td><?= $country['ID'] ?></td>
+             <td><?= $country['Name'] ?></td>
+             <td><?= $country['CountryCode'] ?></td>
+             <td><?= $country['District'] ?></td>
+             <td><?= $country['Population'] ?></td>
+           </tr>
+<?php
 }
-$sql = "SELECT ID, Name, CountryCode, District FROM City WHERE CountryCode = 'CHE' ORDER BY Name";
-$result = $dbh->query($sql);
-
-if (!$result OR mysqli_num_rows($res) < 1){
-    echo "Il y a un probl�me";
 }
-
-
-while($row = $result->fetch_array()){
-    echo '<tr>';
-    echo '<td>';
-    echo $row['ID'];
-    echo '</td>';
-    echo '<td>';
-	echo $row['Name'];
-    echo '</td>';
-    echo '<td>';
-	echo $row['CountryCode'];
-    echo '</td>';
-    echo '<td>';
-	echo $row['District'];
-    echo '</td>';
-    echo '<td>';
-    echo '<a href="edit.php?ID=' . $row['ID'] . '">Modifier</a>';
-    echo '</td>';
-    echo '</tr>';
-
-}
-
-echo '</table>';
-
-if ($result = $dbh->query($sql)) {
+?>
+<?php
+    {
     $nbr = $result->num_rows;
     echo "Il y a $nbr ligne(s)";
 }
-
-$result->close();
-$dbh->close();
 ?>
-
 
 </body>
 </html>
